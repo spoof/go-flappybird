@@ -35,7 +35,6 @@ func run() error {
 	w, r, err := sdl.CreateWindowAndRenderer(windowWidth, windowHeight, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return fmt.Errorf("could not create window: %v", err)
-
 	}
 	defer w.Destroy()
 
