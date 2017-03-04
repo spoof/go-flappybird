@@ -10,7 +10,7 @@ import (
 	ttf "github.com/veandco/go-sdl2/sdl_ttf"
 )
 
-var (
+const (
 	windowWidth  = 800
 	windowHeight = 600
 )
@@ -39,6 +39,8 @@ func run() error {
 	}
 	defer w.Destroy()
 
+	w.SetTitle("Flappy Bird")
+
 	if err := drawTtitle(r); err != nil {
 		return fmt.Errorf("could not draw title: %v", err)
 	}
@@ -65,12 +67,12 @@ func run() error {
 
 func drawTtitle(r *sdl.Renderer) error {
 	r.Clear()
-	f, err := ttf.OpenFont("res/fonts/flappy.ttf", 20)
+	f, err := ttf.OpenFont("res/fonts/flappy.ttf", 18)
 	if err != nil {
 		return fmt.Errorf("cound not load font: %v", err)
 	}
 	c := sdl.Color{R: 255, G: 100, B: 0, A: 255}
-	s, err := f.RenderUTF8_Solid("Flappy Gopher", c)
+	s, err := f.RenderUTF8_Solid("Flappy Bird", c)
 	if err != nil {
 		return fmt.Errorf("could not render title: %v", err)
 	}
