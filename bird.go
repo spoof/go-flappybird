@@ -35,6 +35,7 @@ func (b *bird) paint(r *sdl.Renderer) error {
 	y := 600 - int32(b.y) - 43/2
 	if y >= 600-43 {
 		y = 600 - 43
+		b.y++
 	}
 	if y < 0 {
 		y = 0
