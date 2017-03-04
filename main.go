@@ -1,13 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
-	img "github.com/veandco/go-sdl2/sdl_image"
 	ttf "github.com/veandco/go-sdl2/sdl_ttf"
+)
+
+var (
+	windowWidth  = 800
+	windowHeight = 600
 )
 
 func main() {
@@ -27,30 +32,39 @@ func run() error {
 		return fmt.Errorf("could not initialize TTF: %v", err)
 	}
 
-	w, r, err := sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
+	w, r, err := sdl.CreateWindowAndRenderer(windowWidth, windowHeight, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return fmt.Errorf("could not create window: %v", err)
 
 	}
 	defer w.Destroy()
-	_ = r
 
 	if err := drawTtitle(r); err != nil {
 		return fmt.Errorf("could not draw title: %v", err)
 	}
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
-	if err := drawBackground(r); err != nil {
-		return fmt.Errorf("could not draw background: %v", err)
+	s, err := newScene(r)
+	if err != nil {
+		return fmt.Errorf("could not create scene: %v", err)
 	}
-	time.Sleep(5 * time.Second)
+	defer s.destroy()
 
-	return nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	select {
+	case err := <-s.run(ctx, r):
+		return err
+	case <-time.After(30 * time.Second):
+		return nil
+	}
+
 }
 
 func drawTtitle(r *sdl.Renderer) error {
 	r.Clear()
-	f, err := ttf.OpenFont("res/fonts/FlappyBirdy.ttf", 20)
+	f, err := ttf.OpenFont("res/fonts/flappy.ttf", 20)
 	if err != nil {
 		return fmt.Errorf("cound not load font: %v", err)
 	}
@@ -72,22 +86,5 @@ func drawTtitle(r *sdl.Renderer) error {
 	}
 	r.Present()
 
-	return nil
-}
-
-func drawBackground(r *sdl.Renderer) error {
-	r.Clear()
-
-	t, err := img.LoadTexture(r, "res/imgs/background.png")
-	if err != nil {
-		return fmt.Errorf("cound not load background image: %v", err)
-	}
-	defer t.Destroy()
-
-	if err := r.Copy(t, nil, nil); err != nil {
-		return fmt.Errorf("Could not copy background: %v", err)
-	}
-
-	r.Present()
 	return nil
 }
