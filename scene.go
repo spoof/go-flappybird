@@ -71,14 +71,14 @@ func (s *scene) generatePipe() {
 
 	if len(s.pipes) > 0 {
 		lastPipe := s.pipes[len(s.pipes)-1]
-		d := random(2, 20) * 100
+		d := random(2, 21) * 100
 		if windowWidth-(lastPipe.x+lastPipe.width) >= int32(d) {
-			pipe := newPipe(s.pipe, windowWidth, s.speed)
+			pipe := newPipe(s.pipe, windowHeight, windowWidth, s.speed)
 			s.pipes = append(s.pipes, pipe)
 		}
 
 	} else {
-		pipe := newPipe(s.pipe, windowWidth, s.speed)
+		pipe := newPipe(s.pipe, windowHeight, windowWidth, s.speed)
 		s.pipes = append(s.pipes, pipe)
 	}
 
