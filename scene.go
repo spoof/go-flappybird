@@ -26,7 +26,7 @@ func newScene(r *sdl.Renderer, width, height int) (*scene, error) {
 		return nil, fmt.Errorf("could not load background image: %v", err)
 	}
 
-	bird, err := newBird(r)
+	bird, err := newBird(r, 40, height/2)
 	if err != nil {
 		return nil, fmt.Errorf("could not create bird: %v", err)
 	}
@@ -58,6 +58,9 @@ func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
 					return
 				}
 			case <-tick:
+				if s.hasCollisions() {
+					errc <- fmt.Errorf("Collision detected")
+				}
 				s.generatePipes()
 				s.moveScene()
 				s.deleteHiddenPipes()
@@ -69,6 +72,19 @@ func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
 	}()
 
 	return errc
+}
+
+func (s *scene) hasCollisions() bool {
+	for _, p := range s.pipes {
+		if p.x < s.bird.x+s.bird.width &&
+			p.x+p.width > s.bird.x &&
+			p.y < s.bird.y+s.bird.height &&
+			p.y+p.height > s.bird.y {
+			fmt.Printf("Collision detectd %+v <-> %+v\n", p, s.bird)
+			return true
+		}
+	}
+	return false
 }
 
 func (s *scene) moveScene() {
@@ -134,7 +150,7 @@ func (s *scene) paint(r *sdl.Renderer) error {
 		return fmt.Errorf("could not copy background: %v", err)
 	}
 
-	if err := s.bird.paint(r); err != nil {
+	if err := s.bird.paint(r, false); err != nil {
 		return fmt.Errorf("could paint bird: %v", err)
 	}
 

@@ -43,6 +43,5 @@ func (p *Pipe) paint(r *sdl.Renderer) error {
 	if err := r.CopyEx(p.texture, nil, rect, 0, nil, flip); err != nil {
 		return fmt.Errorf("could not copy pipe: %v", err)
 	}
-
 	return nil
 }

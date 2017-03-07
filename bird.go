@@ -11,11 +11,13 @@ type bird struct {
 	time     int
 	textures []*sdl.Texture
 
-	y float64
-	x float64
+	x      int
+	y      int
+	width  int
+	height int
 }
 
-func newBird(r *sdl.Renderer) (*bird, error) {
+func newBird(r *sdl.Renderer, x, y int) (*bird, error) {
 	var textures []*sdl.Texture
 	for i := 1; i <= 4; i++ {
 		path := fmt.Sprintf("res/imgs/bird_frame_%d.png", i)
@@ -25,32 +27,33 @@ func newBird(r *sdl.Renderer) (*bird, error) {
 		}
 		textures = append(textures, texture)
 	}
-	return &bird{textures: textures, x: 30, y: 300}, nil
+	width := 50
+	height := 43
+	return &bird{textures: textures, x: x - width/2, y: y - height/2, width: width, height: height}, nil
 }
 
-func (b *bird) paint(r *sdl.Renderer) error {
+func (b *bird) paint(r *sdl.Renderer, drawOutline bool) error {
 	b.time++
-	b.y--
+	b.y++
 
-	y := 600 - int32(b.y) - 43/2
-	if y >= 600-43 {
-		y = 600 - 43
-		b.y++
+	rect := &sdl.Rect{X: int32(b.x), Y: int32(b.y), W: int32(b.width), H: int32(b.height)}
+
+	if drawOutline {
+		r.SetDrawColor(255, 0, 0, 0)
+		r.FillRect(rect)
+		r.DrawRect(rect)
 	}
-	if y < 0 {
-		y = 0
-	}
-	rect := &sdl.Rect{X: int32(b.x), Y: y, W: 50, H: 43}
 
 	i := b.time / 8 % len(b.textures)
 	if err := r.Copy(b.textures[i], nil, rect); err != nil {
 		return fmt.Errorf("could not copy background: %v", err)
 	}
+
 	return nil
 }
 
 func (b *bird) jump() {
-	b.y += 25
+	b.y -= 25
 }
 
 func (b *bird) destroy() {
