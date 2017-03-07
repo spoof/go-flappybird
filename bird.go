@@ -25,7 +25,7 @@ func newBird(r *sdl.Renderer) (*bird, error) {
 		}
 		textures = append(textures, texture)
 	}
-	return &bird{textures: textures, y: 300}, nil
+	return &bird{textures: textures, x: 30, y: 300}, nil
 }
 
 func (b *bird) paint(r *sdl.Renderer) error {
@@ -51,14 +51,6 @@ func (b *bird) paint(r *sdl.Renderer) error {
 
 func (b *bird) jump() {
 	b.y += 25
-}
-
-func (b *bird) forward() {
-	b.x += 10
-}
-
-func (b *bird) back() {
-	b.x -= 10
 }
 
 func (b *bird) destroy() {

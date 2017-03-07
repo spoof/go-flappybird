@@ -10,51 +10,39 @@ const (
 	minPipeHeight = 100
 )
 
-type pipe struct {
-	texture          *sdl.Texture
-	x                int32
-	speed            int32
-	width            int32
-	topPipeHeight    int32
-	bottomPipeHeight int32
-	bottomPipeY      int32
+// Pipe is a base model for pipe
+type Pipe struct {
+	texture *sdl.Texture
+	x       int
+	y       int
+	width   int
+	height  int
+	isUpper bool
 }
 
-func newPipe(texture *sdl.Texture, windowHeight int, x, speed int32) *pipe {
-	space := random(120, 300)
-	topPipeHeight := random(minPipeHeight, windowHeight-space-minPipeHeight)
-	bottomPipeHeight := windowHeight - space - topPipeHeight
-	bottomPipeY := topPipeHeight + space
-	p := &pipe{
-		texture:          texture,
-		x:                x,
-		speed:            speed,
-		width:            52,
-		topPipeHeight:    int32(topPipeHeight),
-		bottomPipeHeight: int32(bottomPipeHeight),
-		bottomPipeY:      int32(bottomPipeY),
+// NewPipe creates new Pipe
+func NewPipe(texture *sdl.Texture, x, y, width, height int, isUpper bool) *Pipe {
+	p := &Pipe{
+		texture: texture,
+		isUpper: isUpper,
+		x:       x,
+		y:       y,
+		width:   width,
+		height:  height,
 	}
 	return p
 }
 
-func (p *pipe) paint(r *sdl.Renderer) error {
-	p.x -= p.speed
+func (p *Pipe) paint(r *sdl.Renderer) error {
+	flip := sdl.FLIP_NONE
+	if p.isUpper {
+		flip = sdl.FLIP_VERTICAL
+	}
 
-	rect := &sdl.Rect{X: p.x, Y: 0, W: p.width, H: p.topPipeHeight}
-	if err := r.CopyEx(p.texture, nil, rect, 0, nil, sdl.FLIP_VERTICAL); err != nil {
+	rect := &sdl.Rect{X: int32(p.x), Y: int32(p.y), W: int32(p.width), H: int32(p.height)}
+	if err := r.CopyEx(p.texture, nil, rect, 0, nil, flip); err != nil {
 		return fmt.Errorf("could not copy pipe: %v", err)
 	}
 
-	rect = &sdl.Rect{X: p.x, Y: p.bottomPipeY, W: p.width, H: p.bottomPipeHeight}
-	if err := r.Copy(p.texture, nil, rect); err != nil {
-		return fmt.Errorf("could not copy pipe: %v", err)
-	}
 	return nil
-}
-
-func (p *pipe) isHidden() bool {
-	if p.x+p.width < 0 {
-		return true
-	}
-	return false
 }

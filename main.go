@@ -45,7 +45,7 @@ func run() error {
 	}
 	time.Sleep(2 * time.Second)
 
-	s, err := newScene(r)
+	s, err := newScene(r, windowWidth, windowHeight)
 	if err != nil {
 		return fmt.Errorf("could not create scene: %v", err)
 	}

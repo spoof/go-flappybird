@@ -10,15 +10,17 @@ import (
 )
 
 type scene struct {
-	time  int
-	bg    *sdl.Texture
-	bird  *bird
-	pipe  *sdl.Texture
-	pipes []*pipe
-	speed int32
+	time        int
+	bg          *sdl.Texture
+	bird        *bird
+	pipeTexture *sdl.Texture
+	pipes       []*Pipe
+	speed       int32
+	width       int
+	height      int
 }
 
-func newScene(r *sdl.Renderer) (*scene, error) {
+func newScene(r *sdl.Renderer, width, height int) (*scene, error) {
 	bg, err := img.LoadTexture(r, "res/imgs/background.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load background image: %v", err)
@@ -34,7 +36,14 @@ func newScene(r *sdl.Renderer) (*scene, error) {
 		return nil, fmt.Errorf("could not load pipe image: %v", err)
 	}
 
-	return &scene{bg: bg, bird: bird, pipe: pipe, speed: 2}, nil
+	return &scene{
+		bg:          bg,
+		bird:        bird,
+		pipeTexture: pipe,
+		speed:       2,
+		width:       width,
+		height:      height,
+	}, nil
 }
 
 func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
@@ -49,7 +58,9 @@ func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
 					return
 				}
 			case <-tick:
-				s.generatePipe()
+				s.generatePipes()
+				s.moveScene()
+				s.deleteHiddenPipes()
 				if err := s.paint(r); err != nil {
 					errc <- err
 				}
@@ -60,28 +71,46 @@ func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
 	return errc
 }
 
-func (s *scene) generatePipe() {
-	pipes := make([]*pipe, len(s.pipes))
-	copy(pipes, s.pipes)
-	for i, p := range pipes {
-		if p.isHidden() {
-			s.pipes = append(s.pipes[:i], s.pipes[i+1:]...)
+func (s *scene) moveScene() {
+	for _, pipe := range s.pipes {
+		pipe.x -= 2
+	}
+}
+
+func (s *scene) deleteHiddenPipes() {
+	pipes := []*Pipe{}
+	for _, p := range s.pipes {
+		if p.x+p.width >= 0 {
+			pipes = append(pipes, p)
 		}
 	}
+	s.pipes = pipes
 
-	if len(s.pipes) > 0 {
-		lastPipe := s.pipes[len(s.pipes)-1]
-		d := random(2, 21) * 100
-		if windowWidth-(lastPipe.x+lastPipe.width) >= int32(d) {
-			pipe := newPipe(s.pipe, windowHeight, windowWidth, s.speed)
-			s.pipes = append(s.pipes, pipe)
-		}
+}
 
+func (s *scene) generatePipes() {
+	isNewPipesNeeded := false
+	if len(s.pipes) == 0 {
+		isNewPipesNeeded = true
 	} else {
-		pipe := newPipe(s.pipe, windowHeight, windowWidth, s.speed)
-		s.pipes = append(s.pipes, pipe)
+		lastPipe := s.pipes[len(s.pipes)-1]
+		d := 300
+		if s.width-(lastPipe.x+lastPipe.width) >= d {
+			isNewPipesNeeded = true
+		}
 	}
 
+	if isNewPipesNeeded {
+		x := s.width
+		spaceBetweenPipes := 100
+		width := 52
+		upperHeight := random(100, 400)
+		bottomHeight := s.height - upperHeight - spaceBetweenPipes
+		y := s.height - bottomHeight
+		upperPipe := NewPipe(s.pipeTexture, x, 0, width, upperHeight, true)
+		bottomPipe := NewPipe(s.pipeTexture, x, y, width, bottomHeight, false)
+		s.pipes = append(s.pipes, upperPipe, bottomPipe)
+	}
 }
 
 func (s *scene) handleEvent(event sdl.Event) bool {
@@ -92,10 +121,6 @@ func (s *scene) handleEvent(event sdl.Event) bool {
 		switch e.Keysym.Scancode {
 		case sdl.SCANCODE_UP:
 			s.bird.jump()
-		case sdl.SCANCODE_LEFT:
-			s.bird.back()
-		case sdl.SCANCODE_RIGHT:
-			s.bird.forward()
 		}
 	}
 	return false
@@ -125,7 +150,7 @@ func (s *scene) paint(r *sdl.Renderer) error {
 
 func (s *scene) destroy() {
 	s.bg.Destroy()
-	s.pipe.Destroy()
+	s.pipeTexture.Destroy()
 	s.bird.destroy()
 }
 
