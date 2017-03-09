@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 	ttf "github.com/veandco/go-sdl2/sdl_ttf"
@@ -21,6 +20,7 @@ func main() {
 		os.Exit(2)
 	}
 }
+
 func run() error {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	if err != nil {
@@ -40,10 +40,13 @@ func run() error {
 
 	w.SetTitle("Flappy Bird")
 
-	if err := drawTtitle(r); err != nil {
-		return fmt.Errorf("could not draw title: %v", err)
+	titleScreen, err := NewTitleScreen(r, windowWidth, windowHeight)
+	if err != nil {
+		return fmt.Errorf("could not create title screen: %v", err)
 	}
-	time.Sleep(2 * time.Second)
+
+	events := make(chan sdl.Event)
+	titleExitc := titleScreen.run(events, r)
 
 	s, err := newScene(r, windowWidth, windowHeight)
 	if err != nil {
@@ -51,42 +54,15 @@ func run() error {
 	}
 	defer s.destroy()
 
-	events := make(chan sdl.Event)
-	errc := s.run(events, r)
-
 	runtime.LockOSThread()
 	for {
 		select {
 		case events <- sdl.WaitEvent():
-		case err := <-errc:
-			return err
+		case <-titleExitc:
+			return nil
+			// errc := s.run(events, r)
+			// case err := <-errc:
+			// return err
 		}
 	}
-}
-
-func drawTtitle(r *sdl.Renderer) error {
-	r.Clear()
-	f, err := ttf.OpenFont("res/fonts/flappy.ttf", 18)
-	if err != nil {
-		return fmt.Errorf("cound not load font: %v", err)
-	}
-	c := sdl.Color{R: 255, G: 100, B: 0, A: 255}
-	s, err := f.RenderUTF8_Solid("Flappy Bird", c)
-	if err != nil {
-		return fmt.Errorf("could not render title: %v", err)
-	}
-	defer s.Free()
-
-	t, err := r.CreateTextureFromSurface(s)
-	if err != nil {
-		return fmt.Errorf("cound not create texture: %v", err)
-	}
-	defer t.Destroy()
-
-	if err := r.Copy(t, nil, nil); err != nil {
-		return fmt.Errorf("cound not copy texture: %v", err)
-	}
-	r.Present()
-
-	return nil
 }
