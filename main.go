@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 	ttf "github.com/veandco/go-sdl2/sdl_ttf"
@@ -32,7 +33,7 @@ func run() error {
 		return fmt.Errorf("could not initialize TTF: %v", err)
 	}
 
-	w, r, err := sdl.CreateWindowAndRenderer(windowWidth, windowHeight, sdl.WINDOW_SHOWN)
+	w, renderer, err := sdl.CreateWindowAndRenderer(windowWidth, windowHeight, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return fmt.Errorf("could not create window: %v", err)
 	}
@@ -40,29 +41,37 @@ func run() error {
 
 	w.SetTitle("Flappy Bird")
 
-	titleScreen, err := NewTitleScreen(r, windowWidth, windowHeight)
+	sceneManager, err := NewSceneManager(renderer, windowWidth, windowHeight)
 	if err != nil {
-		return fmt.Errorf("could not create title screen: %v", err)
+		return fmt.Errorf("could not create scene manager: %v", err)
 	}
+	defer sceneManager.Destroy()
 
 	events := make(chan sdl.Event)
-	titleExitc := titleScreen.run(events, r)
-
-	s, err := newScene(r, windowWidth, windowHeight)
-	if err != nil {
-		return fmt.Errorf("could not create scene: %v", err)
-	}
-	defer s.destroy()
+	errc := sceneManager.Run(events, renderer)
 
 	runtime.LockOSThread()
 	for {
+		event := sdl.PollEvent()
+		if event != nil {
+			switch event.(type) {
+			case *sdl.QuitEvent:
+				close(events)
+				<-errc
+				return nil
+			case *sdl.MouseButtonEvent:
+				events <- event
+			}
+		}
+
 		select {
-		case events <- sdl.WaitEvent():
-		case <-titleExitc:
-			return nil
-			// errc := s.run(events, r)
-			// case err := <-errc:
-			// return err
+		case e, ok := <-errc:
+			if !ok {
+				return nil
+			}
+			return fmt.Errorf("SceneManager got error %v", e)
+		default:
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
 }
