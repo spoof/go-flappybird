@@ -14,18 +14,17 @@ Requirements
 * [SDL2_ttf](http://www.libsdl.org/projects/SDL_ttf/)
 
 On __Mac OS X__, install SDL2 via [Homebrew](http://brew.sh) like so:
-`brew install sdl2{,_image,_ttf}`
+`brew install sdl2{,_image,_ttf,_mixer} pkg-config`
+
+For complete guide how to install Go SDL2 see [here](https://github.com/veandco/go-sdl2/blob/master/README.md)
 
 Installation
 ============
 To get the bindings, type:
 ```
-go get -u github.com/veandco/go-sdl2/sdl
-go get -u github.com/veandco/go-sdl2/sdl_mixer
-go get -u github.com/veandco/go-sdl2/sdl_image
-go get -u github.com/veandco/go-sdl2/sdl_ttf
+go get -u github.com/golang/dep/cmd/dep
+dep ensure
 ```
-
 
 Run
 ===
