@@ -24,6 +24,7 @@ To install go-flappybird and its dependencies, type:
 ```
 go get -u github.com/spoof/go-flappybird
 go get -u github.com/golang/dep/cmd/dep
+cd $GOPATH/src/github.com/spoof/go-flappybird
 dep ensure
 ```
 
