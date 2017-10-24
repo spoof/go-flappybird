@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/spoof/flappybird/scene"
+	"github.com/spoof/go-flappybird/scene"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
