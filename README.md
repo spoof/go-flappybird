@@ -20,8 +20,9 @@ For complete guide how to install Go SDL2 see [here](https://github.com/veandco/
 
 Installation
 ============
-To get the bindings, type:
+To install go-flappybird and its dependencies, type:
 ```
+go get -u github.com/spoof/go-flappybird
 go get -u github.com/golang/dep/cmd/dep
 dep ensure
 ```
