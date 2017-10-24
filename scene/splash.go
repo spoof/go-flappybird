@@ -3,9 +3,9 @@ package scene
 import (
 	"fmt"
 
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-	img "github.com/veandco/go-sdl2/sdl_image"
-	ttf "github.com/veandco/go-sdl2/sdl_ttf"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 // Splash is the first game scene
